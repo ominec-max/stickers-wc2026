@@ -1,0 +1,1 @@
+# stickers-wc2026

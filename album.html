@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIFA World Cup 2026 – Panini Album</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --cream:#f4eedf;--cream2:#e8dfc8;--spine:#c9b48a;
+  --gold:#ffd700;--green:#1a6b3c;--dark:#0a0f1e;
+  --shadow:0 30px 80px rgba(0,0,0,0.6);
+}
+html,body{height:100%;overflow:hidden;background:var(--dark);font-family:'Roboto Condensed',sans-serif;}
+
+body{
+  background: radial-gradient(ellipse at 30% 20%, #1a2a4a 0%, #0a0f1e 60%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+
+/* ─── TOP BAR ─── */
+#topbar{
+  position:fixed;top:0;left:0;right:0;height:44px;
+  background:rgba(10,15,30,0.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 12px;z-index:200;
+}
+#topbar-title{font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:1.5px;}
+#toc-btn{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px 8px;opacity:0.7;}
+#toc-btn:hover{opacity:1;}
+
+/* ─── MAIN STAGE ─── */
+#stage{
+  width:100vw;height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:54px 0 54px;
+}
+
+/* ─── BOOK ─── */
+#book{
+  position:relative;
+  width:min(860px,96vw);
+  height:min(560px,calc(100vh - 108px));
+  perspective:2400px;
+}
+
+.spread{
+  position:absolute;inset:0;
+  display:flex;
+  border-radius:3px 6px 6px 3px;
+  box-shadow:var(--shadow);
+  transform-origin:center center;
+  will-change:transform,opacity;
+}
+
+/* PAGES */
+.pg{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:14px 14px;
+  scrollbar-width:none;
+}
+.pg::-webkit-scrollbar{display:none;}
+.pg.L{
+  background:linear-gradient(170deg,var(--cream) 0%,var(--cream2) 100%);
+  border-radius:3px 0 0 3px;
+  color:#222;
+  border-right:1px solid rgba(0,0,0,0.06);
+  box-shadow:inset -8px 0 20px rgba(0,0,0,0.04);
+}
+.pg.R{
+  background:linear-gradient(190deg,var(--cream2) 0%,var(--cream) 100%);
+  border-radius:0 6px 6px 0;
+  color:#222;
+  box-shadow:inset 8px 0 20px rgba(0,0,0,0.04);
+}
+
+/* SPINE */
+.spine{
+  width:22px;flex-shrink:0;
+  background:linear-gradient(to right,#bfaa82,var(--spine),#d4c49a,var(--spine),#bfaa82);
+  box-shadow:inset -4px 0 8px rgba(0,0,0,0.15),inset 4px 0 8px rgba(0,0,0,0.15);
+  position:relative;
+}
+.spine::before{
+  content:'FIFA WORLD CUP 2026';
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%) rotate(90deg);
+  white-space:nowrap;font-size:7px;font-weight:700;letter-spacing:2px;
+  color:rgba(0,0,0,0.3);font-family:'Oswald',sans-serif;
+}
+
+/* ─── STICKER GRID ─── */
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px;}
+.sgrid.cols3{grid-template-columns:repeat(3,1fr);}
+
+/* ─── STICKER ─── */
+.stk{
+  aspect-ratio:3/4;border-radius:4px;position:relative;overflow:hidden;
+  cursor:pointer;transition:transform .15s,box-shadow .15s;
+  border:1.5px solid #bbb;background:#d5cbb8;
+}
+.stk:hover{transform:scale(1.07);z-index:5;box-shadow:0 6px 20px rgba(0,0,0,0.3);}
+.stk.have{border-color:#1a9950;box-shadow:0 0 8px rgba(26,153,80,0.4);}
+.stk.dbl{border-color:var(--gold);box-shadow:0 0 8px rgba(255,215,0,0.5);}
+.stk.miss{opacity:0.55;}
+
+.stk-bg{width:100%;height:100%;object-fit:cover;display:block;}
+.stk-mask{
+  position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(0,0,0,0.0) 40%,rgba(0,0,0,0.65) 100%);
+}
+.stk.miss .stk-mask{background:rgba(0,0,0,0.5);}
+
+.stk-num{
+  position:absolute;bottom:0;left:0;right:0;
+  text-align:center;font-size:8px;font-weight:700;
+  color:#fff;padding:2px 0;
+  font-family:'Oswald',sans-serif;letter-spacing:.5px;
+  text-shadow:0 1px 3px rgba(0,0,0,0.9);
+}
+.stk.have .stk-num{background:rgba(10,100,50,0.85);}
+.stk.dbl  .stk-num{background:rgba(140,100,0,0.85);}
+
+.stk-badge{
+  position:absolute;top:3px;right:3px;
+  width:13px;height:13px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:7px;font-weight:900;
+}
+.stk.have .stk-badge{background:#1a9950;color:#fff;}
+.stk.dbl  .stk-badge{background:var(--gold);color:#000;}
+
+/* player silhouette for missing */
+.sil{
+  position:absolute;top:20%;left:50%;transform:translateX(-50%);
+  width:40%;opacity:0.2;
+}
+
+/* ─── TEAM HEADER ─── */
+.th{text-align:center;margin-bottom:8px;padding-bottom:8px;border-bottom:2px solid rgba(0,0,0,0.08);}
+.th-flag{width:48px;height:32px;object-fit:cover;border-radius:3px;border:1px solid rgba(0,0,0,0.12);}
+.th-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+.th-badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;color:#fff;margin-top:3px;font-family:'Oswald',sans-serif;}
+.th-bar-wrap{height:4px;background:#ddd;border-radius:2px;margin-top:5px;overflow:hidden;}
+.th-bar{height:100%;border-radius:2px;transition:width .4s ease;}
+.th-prog{font-size:10px;color:#888;margin-top:3px;}
+
+/* ─── COVER ─── */
+.cover-full{
+  flex:1;border-radius:3px 6px 6px 3px;overflow:hidden;
+  background:linear-gradient(150deg,#004d2b 0%,#001f10 50%,#003020 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:30px;position:relative;
+}
+.cover-full::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(60deg,rgba(255,255,255,0.015) 0,rgba(255,255,255,0.015) 1px,transparent 1px,transparent 40px);
+}
+.cover-ball{font-size:64px;margin-bottom:6px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5));}
+.cover-sub{font-size:12px;letter-spacing:4px;color:rgba(255,215,0,0.7);text-transform:uppercase;font-family:'Oswald',sans-serif;}
+.cover-main{font-size:36px;font-weight:700;color:var(--gold);text-transform:uppercase;font-family:'Oswald',sans-serif;letter-spacing:2px;line-height:1.1;margin-top:4px;}
+.cover-year{font-size:60px;font-weight:700;color:#fff;font-family:'Oswald',sans-serif;line-height:1;}
+.cover-line{width:80px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:14px auto;}
+.cover-hosts{display:flex;gap:6px;justify-content:center;margin:4px 0;}
+.cover-hosts img{width:36px;height:24px;object-fit:cover;border-radius:3px;border:1px solid rgba(255,215,0,0.3);}
+.cover-panini{font-size:24px;font-weight:700;color:var(--gold);letter-spacing:4px;font-family:'Oswald',sans-serif;margin-top:12px;}
+.cover-credit{font-size:11px;color:rgba(255,255,255,0.35);margin-top:16px;font-style:italic;}
+
+/* ─── GROUP HEADER ─── */
+.gh-letter{
+  position:absolute;font-size:140px;font-weight:700;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  opacity:0.07;font-family:'Oswald',sans-serif;line-height:1;
+  pointer-events:none;
+}
+
+/* ─── NAVIGATION ─── */
+#nav{
+  position:fixed;bottom:0;left:0;right:0;height:50px;
+  background:rgba(10,15,30,0.92);backdrop-filter:blur(8px);
+  border-top:1px solid rgba(255,255,255,0.08);
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  z-index:200;
+}
+.nbtn{
+  width:36px;height:36px;border-radius:50%;border:none;
+  background:rgba(255,255,255,0.1);color:#fff;font-size:14px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .2s;
+}
+.nbtn:hover:not(:disabled){background:rgba(255,255,255,0.25);}
+.nbtn:disabled{opacity:0.25;cursor:default;}
+#pg-label{
+  font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.5px;
+  color:rgba(255,255,255,0.7);min-width:160px;text-align:center;
+}
+
+/* ─── TOC DRAWER ─── */
+#toc-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.6);
+  z-index:300;display:none;backdrop-filter:blur(3px);
+}
+#toc-overlay.on{display:block;}
+#toc{
+  position:fixed;left:-300px;top:0;bottom:0;width:300px;
+  background:#0d1526;border-right:1px solid rgba(255,255,255,0.08);
+  z-index:301;transition:left .3s ease;overflow-y:auto;
+  padding-top:50px;
+}
+#toc.on{left:0;}
+.toc-close{
+  position:absolute;top:8px;right:8px;
+  background:none;border:none;color:#fff;font-size:20px;cursor:pointer;opacity:0.5;
+}
+.toc-close:hover{opacity:1;}
+.tc{padding:10px 18px;display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;transition:background .15s;border-radius:0;}
+.tc:hover{background:rgba(255,255,255,0.07);}
+.tc.active{background:rgba(26,107,60,0.25);color:var(--gold);}
+.tc.gh{
+  padding:12px 18px 4px;font-size:10px;font-weight:700;letter-spacing:2px;
+  opacity:0.4;cursor:default;margin-top:6px;
+}
+.tc.gh:hover{background:none;}
+.tc-flag{width:24px;height:16px;object-fit:cover;border-radius:2px;flex-shrink:0;}
+.tc-name{flex:1;}
+.tc-prog{font-size:10px;opacity:0.45;}
+
+/* ─── LEGEND ─── */
+#legend{
+  position:fixed;bottom:58px;right:10px;
+  display:flex;gap:8px;z-index:100;
+}
+.leg{display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(255,255,255,0.55);}
+.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+/* ─── ANIM ─── */
+@keyframes slideInR{from{opacity:0;transform:translateX(40px);}to{opacity:1;transform:translateX(0);}}
+@keyframes slideInL{from{opacity:0;transform:translateX(-40px);}to{opacity:1;transform:translateX(0);}}
+.anim-r{animation:slideInR .3s ease forwards;}
+.anim-l{animation:slideInL .3s ease forwards;}
+
+/* ─── MOBILE ─── */
+@media(max-width:600px){
+  .pg.L{display:none;}
+  .spine{display:none;}
+  .pg.R{border-radius:3px 6px 6px 3px;}
+  .sgrid{grid-template-columns:repeat(3,1fr);gap:4px;}
+  .th-name{font-size:13px;}
+  #book{width:95vw;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <button id="toc-btn">☰</button>
+  <div id="topbar-title">WC 2026 · PANINI ALBUM · by Eric &amp; Dani</div>
+  <div style="width:44px"></div>
+</div>
+
+<!-- TOC -->
+<div id="toc-overlay"></div>
+<div id="toc">
+  <button class="toc-close" id="toc-close">✕</button>
+  <div id="toc-inner"></div>
+</div>
+
+<!-- STAGE -->
+<div id="stage">
+  <div id="book"></div>
+</div>
+
+<!-- NAV -->
+<div id="nav">
+  <button class="nbtn" id="btn-first" title="First page">⏮</button>
+  <button class="nbtn" id="btn-prev">◀</button>
+  <span id="pg-label">Cover</span>
+  <button class="nbtn" id="btn-next">▶</button>
+  <button class="nbtn" id="btn-last" title="Last page">⏭</button>
+</div>
+
+<!-- LEGEND -->
+<div id="legend">
+  <div class="leg"><div class="leg-dot" style="background:#1a9950;border:1px solid #1a9950"></div>Have</div>
+  <div class="leg"><div class="leg-dot" style="background:var(--gold);border:1px solid var(--gold)"></div>Double</div>
+  <div class="leg"><div class="leg-dot" style="background:#888;border:1px dashed #aaa"></div>Missing</div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const GROUPS=[
+  {id:"A",color:"#1e7a3c",teams:[{code:"MEX",name:"Mexico"},{code:"RSA",name:"South Africa"},{code:"KOR",name:"Korea Republic"},{code:"CZE",name:"Czechia"}]},
+  {id:"B",color:"#c0392b",teams:[{code:"CAN",name:"Canada"},{code:"BIH",name:"Bosnia-Herz."},{code:"QAT",name:"Qatar"},{code:"SUI",name:"Switzerland"}]},
+  {id:"C",color:"#b7950b",teams:[{code:"BRA",name:"Brazil"},{code:"MAR",name:"Morocco"},{code:"HAI",name:"Haiti"},{code:"SCO",name:"Scotland"}]},
+  {id:"D",color:"#1a5276",teams:[{code:"USA",name:"USA"},{code:"PAR",name:"Paraguay"},{code:"AUS",name:"Australia"},{code:"TUR",name:"Turkey"}]},
+  {id:"E",color:"#d35400",teams:[{code:"GER",name:"Germany"},{code:"CUW",name:"Curacao"},{code:"CIV",name:"Cote d'Ivoire"},{code:"ECU",name:"Ecuador"}]},
+  {id:"F",color:"#154360",teams:[{code:"NED",name:"Netherlands"},{code:"JPN",name:"Japan"},{code:"SWE",name:"Sweden"},{code:"TUN",name:"Tunisia"}]},
+  {id:"G",color:"#6c3483",teams:[{code:"BEL",name:"Belgium"},{code:"EGY",name:"Egypt"},{code:"IRN",name:"IR Iran"},{code:"NZL",name:"New Zealand"}]},
+  {id:"H",color:"#0e6655",teams:[{code:"ESP",name:"Spain"},{code:"CPV",name:"Cabo Verde"},{code:"KSA",name:"Saudi Arabia"},{code:"URU",name:"Uruguay"}]},
+  {id:"I",color:"#512e8b",teams:[{code:"FRA",name:"France"},{code:"SEN",name:"Senegal"},{code:"IRQ",name:"Iraq"},{code:"NOR",name:"Norway"}]},
+  {id:"J",color:"#943126",teams:[{code:"ARG",name:"Argentina"},{code:"ALG",name:"Algeria"},{code:"AUT",name:"Austria"},{code:"JOR",name:"Jordan"}]},
+  {id:"K",color:"#c0727e",teams:[{code:"POR",name:"Portugal"},{code:"COD",name:"Congo DR"},{code:"UZB",name:"Uzbekistan"},{code:"COL",name:"Colombia"}]},
+  {id:"L",color:"#6e2222",teams:[{code:"ENG",name:"England"},{code:"CRO",name:"Croatia"},{code:"GHA",name:"Ghana"},{code:"PAN",name:"Panama"}]},
+];
+const ISO2={
+  MEX:"mx",RSA:"za",KOR:"kr",CZE:"cz",CAN:"ca",BIH:"ba",QAT:"qa",SUI:"ch",
+  BRA:"br",MAR:"ma",HAI:"ht",SCO:"gb-sct",USA:"us",PAR:"py",AUS:"au",TUR:"tr",
+  GER:"de",CUW:"cw",CIV:"ci",ECU:"ec",NED:"nl",JPN:"jp",SWE:"se",TUN:"tn",
+  BEL:"be",EGY:"eg",IRN:"ir",NZL:"nz",ESP:"es",CPV:"cv",KSA:"sa",URU:"uy",
+  FRA:"fr",SEN:"sn",IRQ:"iq",NOR:"no",ARG:"ar",ALG:"dz",AUT:"at",JOR:"jo",
+  POR:"pt",COD:"cd",UZB:"uz",COL:"co",ENG:"gb-eng",CRO:"hr",GHA:"gh",PAN:"pa"
+};
+// TheSportsDB national team IDs (free API, api key = 3)
+const TSDB={
+  MEX:808,KOR:824,CZE:806,CAN:841,SUI:830,BRA:805,SCO:834,
+  USA:831,AUS:836,GER:813,NED:822,JPN:823,SWE:829,
+  BEL:800,ESP:814,URU:832,FRA:816,ARG:807,POR:835,ENG:833
+};
+const STORAGE_KEY="panini-wc2026-v2";
+const N=20,WFC=19;
+
+// ============================================================
+// STATE
+// ============================================================
+let collected={};
+let playerCache={};
+let cur=0;
+let animating=false;
+
+// ============================================================
+// SPREADS
+// ============================================================
+const spreads=[];
+spreads.push({type:"cover"});
+spreads.push({type:"intro"});
+GROUPS.forEach(g=>{
+  spreads.push({type:"group",g});
+  [...g.teams].sort((a,b)=>a.name.localeCompare(b.name)).forEach(t=>{
+    spreads.push({type:"team",t,g});
+  });
+});
+spreads.push({type:"wfc"});
+
+// ============================================================
+// HELPERS
+// ============================================================
+function flagUrl(code){const i=ISO2[code];return i?`https://flagcdn.com/w320/${i}.png`:"";}
+function load(){try{const r=localStorage.getItem(STORAGE_KEY);collected=r?JSON.parse(r):{};} catch{collected={};}}
+function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(collected));}catch{}}
+function stkState(code,n){const v=collected[`${code}_${n}`]||0;return v===2?"dbl":v===1?"have":"miss";}
+function teamPct(code){
+  const h=Array.from({length:N},(_,i)=>i+1).filter(n=>(collected[`${code}_${n}`]||0)>0).length;
+  return{h,pct:Math.round(h/N*100)};
+}
+
+// ============================================================
+// FETCH PLAYERS
+// ============================================================
+async function fetchPlayers(code){
+  if(playerCache[code]!==undefined)return playerCache[code];
+  const id=TSDB[code];
+  if(!id){playerCache[code]=[];return[];}
+  try{
+    const r=await fetch(`https://www.thesportsdb.com/api/v1/json/3/lookup_all_players.php?id=${id}`);
+    const d=await r.json();
+    const pl=(d.player||[]).filter(p=>p.strThumb&&p.strThumb.trim()!=='');
+    playerCache[code]=pl.slice(0,20);
+  }catch{playerCache[code]=[];}
+  return playerCache[code];
+}
+
+// ============================================================
+// STICKER HTML
+// ============================================================
+function stickerHTML(code,num,imgSrc){
+  const st=stkState(code,num);
+  const src=imgSrc||flagUrl(code);
+  const badge=st==="miss"?"":(st==="have"?'<div class="stk-badge">✓</div>':'<div class="stk-badge">2×</div>');
+  const sil=st==="miss"?`<svg class="sil" viewBox="0 0 80 100" fill="rgba(255,255,255,0.8)">
+    <ellipse cx="40" cy="22" rx="16" ry="18"/><path d="M10 95c0-22 12-38 30-38s30 16 30 38z"/></svg>`:""
+  ;
+  return `<div class="stk ${st}" onclick="tapStk('${code}',${num})">
+    <img class="stk-bg" src="${src}" loading="lazy" onerror="this.src='${flagUrl(code)}'">
+    <div class="stk-mask"></div>
+    ${sil}${badge}
+    <div class="stk-num">${code}&nbsp;${num}</div>
+  </div>`;
+}
+
+function teamHeader(t,g){
+  const{h,pct}=teamPct(t.code);
+  return`<div class="th">
+    <img class="th-flag" src="${flagUrl(t.code)}" onerror="this.style.display='none'">
+    <div class="th-name" style="color:${g.color}">${t.name}</div>
+    <span class="th-badge" style="background:${g.color}">Group ${g.id}</span>
+    <div class="th-bar-wrap"><div class="th-bar" style="width:${pct}%;background:${g.color}"></div></div>
+    <div class="th-prog">${h} / ${N} stickers collected</div>
+  </div>`;
+}
+
+// ============================================================
+// RENDER SPREADS
+// ============================================================
+function renderCover(){
+  return`<div class="cover-full">
+    <div class="cover-ball">⚽</div>
+    <div class="cover-sub">FIFA</div>
+    <div class="cover-main">World Cup</div>
+    <div class="cover-year">2026™</div>
+    <div class="cover-line"></div>
+    <div class="cover-hosts">
+      <img src="https://flagcdn.com/w80/us.png" onerror="this.style.display='none'">
+      <img src="https://flagcdn.com/w80/ca.png" onerror="this.style.display='none'">
+      <img src="https://flagcdn.com/w80/mx.png" onerror="this.style.display='none'">
+    </div>
+    <div class="cover-panini">PANINI</div>
+    <div class="cover-credit">Sticker Album — by Eric &amp; Dani</div>
+  </div>`;
+}
+
+function renderIntro(){
+  const L=`<div class="pg L">
+    <div style="text-align:center;margin-bottom:10px">
+      <div style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:2px">Introduction</div>
+      <div style="font-size:11px;color:#888;margin-top:2px">Stickers 1–7</div>
+    </div>
+    <div class="sgrid cols3">
+      ${Array.from({length:7},(_,i)=>i+1).map(n=>{
+        const st=(collected[`INTRO_${n}`]||0)===1?"have":(collected[`INTRO_${n}`]||0)===2?"dbl":"miss";
+        return`<div class="stk ${st}" onclick="tapIntro(${n})">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#006847,#003d2b);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px">
+            <span style="font-size:22px">🏆</span>
+          </div>
+          ${st==="miss"?'<div class="stk-mask" style="background:rgba(0,0,0,0.5)"></div>':""}
+          ${st==="have"?'<div class="stk-badge">✓</div>':st==="dbl"?'<div class="stk-badge">2×</div>':""}
+          <div class="stk-num">INTRO ${n}</div>
+        </div>`;
+      }).join("")}
+    </div>
+  </div>`;
+  const R=`<div class="pg R" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;opacity:0.6;gap:10px">
+    <div style="font-size:52px">🌎</div>
+    <div style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:#333">USA · Canada · Mexico</div>
+    <div style="font-size:12px;color:#666">11 June – 19 July 2026</div>
+    <div style="font-size:11px;color:#888;margin-top:8px">104 matches · 16 host cities · 48 teams</div>
+  </div>`;
+  return L+"<div class='spine'></div>"+R;
+}
+
+function renderGroup(g){
+  const teams=[...g.teams].sort((a,b)=>a.name.localeCompare(b.name));
+  const totalH=teams.reduce((a,t)=>a+teamPct(t.code).h,0);
+  const totalT=teams.length*N;
+  const totalPct=Math.round(totalH/totalT*100);
+  const L=`<div class="pg L" style="position:relative;overflow:hidden">
+    <div class="gh-letter">${g.id}</div>
+    <div style="position:relative;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
+      <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:3px;opacity:0.4;text-transform:uppercase">Group</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:80px;font-weight:700;color:${g.color};line-height:1">${g.id}</div>
+      <div style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:180px">
+        ${teams.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:6px;background:rgba(0,0,0,0.04)">
+          <img src="${flagUrl(t.code)}" style="width:28px;height:19px;object-fit:cover;border-radius:2px;border:1px solid rgba(0,0,0,0.1)" onerror="this.style.display='none'">
+          <span style="font-size:13px;font-weight:700;color:#333">${t.name}</span>
+        </div>`).join("")}
+      </div>
+    </div>
+  </div>`;
+  const R=`<div class="pg R">
+    <div style="text-align:center;margin-bottom:12px">
+      <div style="font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;color:#555;letter-spacing:1px">GROUP PROGRESS</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${teams.map(t=>{const{h,pct}=teamPct(t.code);return`
+        <div style="padding:8px;border-radius:8px;background:rgba(0,0,0,0.04)">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:700;color:#333">${t.name}</span>
+            <span style="font-size:11px;color:#888">${h}/${N}</span>
+          </div>
+          <div style="height:5px;background:#ddd;border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${g.color};border-radius:3px"></div>
+          </div>
+        </div>`;}).join("")}
+    </div>
+    <div style="margin-top:20px;text-align:center">
+      <div style="font-family:'Oswald',sans-serif;font-size:36px;font-weight:700;color:${g.color}">${totalPct}%</div>
+      <div style="font-size:11px;color:#888">Group ${g.id} complete</div>
+      <div style="font-size:12px;color:#aaa;margin-top:4px">${totalH} / ${totalT} stickers</div>
+    </div>
+  </div>`;
+  return L+"<div class='spine'></div>"+R;
+}
+
+async function renderTeam(t,g){
+  const players=await fetchPlayers(t.code);
+  const L=`<div class="pg L">
+    ${teamHeader(t,g)}
+    <div class="sgrid">
+      ${Array.from({length:10},(_,i)=>i+1).map(n=>stickerHTML(t.code,n,players[n-1]?.strThumb||"")).join("")}
+    </div>
+  </div>`;
+  const R=`<div class="pg R">
+    ${teamHeader(t,g)}
+    <div class="sgrid">
+      ${Array.from({length:10},(_,i)=>i+11).map(n=>stickerHTML(t.code,n,players[n-11]?.strThumb||"")).join("")}
+    </div>
+  </div>`;
+  return L+"<div class='spine'></div>"+R;
+}
+
+function renderWFC(){
+  const wfcHave=Array.from({length:WFC},(_,i)=>i+1).filter(n=>(collected[`FWC_${n}`]||0)>0).length;
+  const mkSlot=n=>{
+    const st=(collected[`FWC_${n}`]||0)===1?"have":(collected[`FWC_${n}`]||0)===2?"dbl":"miss";
+    return`<div class="stk ${st}" onclick="tapWFC(${n})">
+      <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0533,#4a1080);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px">
+        <span style="font-size:18px">⭐</span>
+        <span style="color:rgba(255,215,0,0.7);font-size:8px;font-weight:700;font-family:'Oswald',sans-serif">WFC</span>
+      </div>
+      ${st==="miss"?'<div class="stk-mask" style="background:rgba(0,0,0,0.5)"></div>':""}
+      ${st==="have"?'<div class="stk-badge">✓</div>':st==="dbl"?'<div class="stk-badge">2×</div>':""}
+      <div class="stk-num">WFC ${n}</div>
+    </div>`;
+  };
+  const L=`<div class="pg L">
+    <div style="text-align:center;margin-bottom:8px">
+      <div style="font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;color:#4a1080;text-transform:uppercase;letter-spacing:2px">WFC Specials</div>
+      <div style="font-size:11px;color:#888">${wfcHave}/${WFC} collected</div>
+    </div>
+    <div class="sgrid cols3">${Array.from({length:10},(_,i)=>i+1).map(mkSlot).join("")}</div>
+  </div>`;
+  const R=`<div class="pg R">
+    <div style="text-align:center;margin-bottom:8px">
+      <div style="font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;color:#4a1080;text-transform:uppercase;letter-spacing:2px">WFC Specials</div>
+      <div style="font-size:11px;color:#888">Stickers 11–19</div>
+    </div>
+    <div class="sgrid cols3">${Array.from({length:9},(_,i)=>i+11).map(mkSlot).join("")}</div>
+  </div>`;
+  return L+"<div class='spine'></div>"+R;
+}
+
+// ============================================================
+// GO TO SPREAD
+// ============================================================
+async function goTo(idx,dir){
+  if(animating)return;
+  if(idx<0||idx>=spreads.length)return;
+  animating=true;
+
+  const book=document.getElementById("book");
+  const old=book.querySelector(".spread");
+  if(old){
+    old.style.transition="transform .25s ease,opacity .25s ease";
+    old.style.transform=dir>0?"translateX(-50px) rotate3d(0,1,0,8deg)":"translateX(50px) rotate3d(0,1,0,-8deg)";
+    old.style.opacity="0";
+    await wait(250);
+    old.remove();
+  }
+
+  cur=idx;
+  const sp=spreads[idx];
+  let html="";
+  if(sp.type==="cover") html=renderCover();
+  else if(sp.type==="intro") html=renderIntro();
+  else if(sp.type==="group") html=renderGroup(sp.g);
+  else if(sp.type==="wfc") html=renderWFC();
+  else if(sp.type==="team"){
+    // show loading first
+    const ldg=mkSpread(`<div class="pg L" style="display:flex;align-items:center;justify-content:center;opacity:.5">
+      <div style="text-align:center">
+        <img src="${flagUrl(sp.t.code)}" style="width:60px;height:40px;object-fit:cover;border-radius:4px" onerror="this.style.display='none'">
+        <div style="font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;color:#555;margin-top:6px">${sp.t.name}</div>
+        <div style="font-size:11px;color:#aaa;margin-top:4px">Loading players…</div>
+      </div></div><div class="spine"></div><div class="pg R"></div>`);
+    book.appendChild(ldg);
+    triggerAnim(ldg,dir);
+    html=await renderTeam(sp.t,sp.g);
+    ldg.remove();
+  }
+
+  if(sp.type!=="team"){
+    const el=mkSpread(html);
+    book.appendChild(el);
+    triggerAnim(el,dir);
+  } else {
+    const el=mkSpread(html);
+    book.appendChild(el);
+    triggerAnim(el,dir);
+  }
+
+  updateNav();
+  updateTOC();
+  animating=false;
+}
+
+function mkSpread(inner){
+  const d=document.createElement("div");
+  d.className="spread";
+  d.innerHTML=inner;
+  return d;
+}
+
+function triggerAnim(el,dir){
+  el.style.opacity="0";
+  el.style.transform=dir>0?"translateX(50px)":"translateX(-50px)";
+  requestAnimationFrame(()=>{
+    el.style.transition="transform .3s ease,opacity .3s ease";
+    el.style.transform="translateX(0)";
+    el.style.opacity="1";
+  });
+}
+
+function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// ============================================================
+// CLICK HANDLERS
+// ============================================================
+function tapStk(code,n){
+  const k=`${code}_${n}`;
+  collected[k]=((collected[k]||0)+1)%3;
+  persist();goTo(cur,0);
+}
+function tapIntro(n){
+  const k=`INTRO_${n}`;
+  collected[k]=((collected[k]||0)+1)%3;
+  persist();goTo(cur,0);
+}
+function tapWFC(n){
+  const k=`FWC_${n}`;
+  collected[k]=((collected[k]||0)+1)%3;
+  persist();goTo(cur,0);
+}
+
+// ============================================================
+// NAV
+// ============================================================
+function updateNav(){
+  document.getElementById("btn-prev").disabled=cur===0;
+  document.getElementById("btn-next").disabled=cur===spreads.length-1;
+  document.getElementById("btn-first").disabled=cur===0;
+  document.getElementById("btn-last").disabled=cur===spreads.length-1;
+  const sp=spreads[cur];
+  let lbl=`${cur+1} / ${spreads.length}`;
+  if(sp.type==="cover")lbl="Cover";
+  else if(sp.type==="intro")lbl="Introduction";
+  else if(sp.type==="group")lbl=`Group ${sp.g.id}`;
+  else if(sp.type==="team")lbl=sp.t.name;
+  else if(sp.type==="wfc")lbl="WFC Specials";
+  document.getElementById("pg-label").textContent=lbl;
+}
+
+document.getElementById("btn-prev").onclick=()=>goTo(cur-1,-1);
+document.getElementById("btn-next").onclick=()=>goTo(cur+1,1);
+document.getElementById("btn-first").onclick=()=>goTo(0,-1);
+document.getElementById("btn-last").onclick=()=>goTo(spreads.length-1,1);
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowRight"||e.key==="ArrowDown")goTo(cur+1,1);
+  if(e.key==="ArrowLeft"||e.key==="ArrowUp")goTo(cur-1,-1);
+});
+
+// Swipe
+let tx=0;
+document.addEventListener("touchstart",e=>{tx=e.touches[0].clientX;},{passive:true});
+document.addEventListener("touchend",e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  if(Math.abs(dx)>50){dx<0?goTo(cur+1,1):goTo(cur-1,-1);}
+});
+
+// ============================================================
+// TOC
+// ============================================================
+function buildTOC(){
+  let h=`<div style="padding:10px 18px 14px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:4px">
+    <div style="font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;color:var(--gold)">Contents</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px">FIFA World Cup 2026</div>
+  </div>`;
+  spreads.forEach((sp,i)=>{
+    if(sp.type==="cover")
+      h+=`<div class="tc" onclick="tocGo(${i})"><span style="font-size:14px">🏆</span><span class="tc-name">Cover</span></div>`;
+    else if(sp.type==="intro")
+      h+=`<div class="tc" onclick="tocGo(${i})"><span style="font-size:14px">📖</span><span class="tc-name">Introduction</span></div>`;
+    else if(sp.type==="group")
+      h+=`<div class="tc gh">GROUP ${sp.g.id}</div>`;
+    else if(sp.type==="team"){
+      const{h:hv}=teamPct(sp.t.code);
+      h+=`<div class="tc" id="toc-${i}" onclick="tocGo(${i})">
+        <img class="tc-flag" src="${flagUrl(sp.t.code)}" onerror="this.style.display='none'">
+        <span class="tc-name">${sp.t.name}</span>
+        <span class="tc-prog">${hv}/${N}</span>
+      </div>`;
+    } else if(sp.type==="wfc")
+      h+=`<div class="tc" onclick="tocGo(${i})"><span style="font-size:14px">⭐</span><span class="tc-name">WFC Specials</span></div>`;
+  });
+  document.getElementById("toc-inner").innerHTML=h;
+}
+
+function updateTOC(){
+  document.querySelectorAll(".tc").forEach(el=>el.classList.remove("active"));
+  const el=document.getElementById(`toc-${cur}`);
+  if(el){el.classList.add("active");el.scrollIntoView({block:"nearest"});}
+}
+
+function tocGo(i){
+  closeTOC();goTo(i,i>cur?1:-1);
+}
+
+function openTOC(){
+  document.getElementById("toc").classList.add("on");
+  document.getElementById("toc-overlay").classList.add("on");
+}
+function closeTOC(){
+  document.getElementById("toc").classList.remove("on");
+  document.getElementById("toc-overlay").classList.remove("on");
+}
+
+document.getElementById("toc-btn").onclick=openTOC;
+document.getElementById("toc-close").onclick=closeTOC;
+document.getElementById("toc-overlay").onclick=closeTOC;
+
+// ============================================================
+// INIT
+// ============================================================
+load();
+buildTOC();
+goTo(0,1);
+</script>
+</body>
+</html>

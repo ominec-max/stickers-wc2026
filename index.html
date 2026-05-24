@@ -161,132 +161,172 @@ function importData(setCollected){
   input.click();
 }
 
-function gerarPDF(collected){
-  const{jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
-  const W=210,margin=14;
-  let y=14;
-
-  // helpers
-  const title=(txt,size,color)=>{
-    doc.setFontSize(size);
-    doc.setTextColor(...color);
-    doc.text(txt,margin,y);
-    y+=size*0.45;
-  };
-  const line=()=>{
-    doc.setDrawColor(200,200,200);
-    doc.line(margin,y,W-margin,y);
-    y+=4;
-  };
-  const checkPage=()=>{if(y>275){doc.addPage();y=14;}};
-
-  // Header
-  doc.setFillColor(26,107,60);
-  doc.rect(0,0,W,28,"F");
-  doc.setFontSize(18);doc.setTextColor(255,214,0);
-  doc.text("Stickers World Cup 2026 - PANINI",margin,12);
-  doc.setFontSize(10);doc.setTextColor(255,255,255);
-  doc.text("by Eric & Dani",margin,20);
-  doc.setFontSize(9);doc.setTextColor(220,220,220);
-  const have=ALL_KEYS.filter(k=>(collected[k]||0)>=1).length;
-  const dup=ALL_KEYS.filter(k=>(collected[k]||0)===2).length;
-  const miss=ALL_KEYS.length-have;
-  const pct=Math.round(have/ALL_KEYS.length*100);
-  doc.text(`Have: ${have}  |  Missing: ${miss}  |  Doubles: ${dup}  |  Complete: ${pct}%`,W-margin,20,{align:"right"});
-  y=36;
-
-  // WFC
-  const wfcHave=wfcKeys.filter(k=>(collected[k]||0)>0).map(k=>k.replace("FWC_","FWC "));
-  const wfcMiss=wfcKeys.filter(k=>(collected[k]||0)===0).map(k=>k.replace("FWC_","FWC "));
-  doc.setFontSize(12);doc.setTextColor(180,130,0);
-  doc.text("WFC Special Stickers",margin,y);y+=6;
-  doc.setFontSize(8);
-  if(wfcHave.length){
-    doc.setTextColor(30,120,60);
-    const rows=[];
-    for(let i=0;i<wfcHave.length;i+=10)rows.push(wfcHave.slice(i,i+10).join("  "));
-    rows.forEach(r=>{doc.text("HAVE: "+r,margin+2,y);y+=4.5;});
-  }
-  if(wfcMiss.length){
-    doc.setTextColor(180,40,40);
-    const rows=[];
-    for(let i=0;i<wfcMiss.length;i+=10)rows.push(wfcMiss.slice(i,i+10).join("  "));
-    rows.forEach(r=>{doc.text("MISSING: "+r,margin+2,y);y+=4.5;});
-  }
-  y+=2;line();
-
-  // Groups
-  GROUPS.forEach(g=>{
-    checkPage();
-    // group header
-    doc.setFontSize(11);doc.setTextColor(50,50,50);
-    const gH=g.teams.reduce((a,t)=>a+tn(t.code).filter(k=>(collected[k]||0)>0).length,0);
-    const gT=g.teams.length*N;
-    doc.setFont(undefined,"bold");
-    doc.text(`Group ${g.id}`,margin,y);
-    doc.setFont(undefined,"normal");
-    doc.setFontSize(8);doc.setTextColor(120,120,120);
-    doc.text(`${gH}/${gT}`,W-margin,y,{align:"right"});
-    y+=5;
-
-    [...g.teams].sort((a,b)=>a.name.localeCompare(b.name,"pt")).forEach(t=>{
-      checkPage();
-      const nums=Array.from({length:N},(_,i)=>i+1);
-      const have=nums.filter(n=>(collected[`${t.code}_${n}`]||0)>0);
-      const miss=nums.filter(n=>(collected[`${t.code}_${n}`]||0)===0);
-      const rep=nums.filter(n=>(collected[`${t.code}_${n}`]||0)===2);
-
-      doc.setFontSize(9);doc.setFont(undefined,"bold");doc.setTextColor(40,40,40);
-      doc.text(`${t.name} (${t.code})`,margin+2,y);
-      doc.setFont(undefined,"normal");
-      doc.setFontSize(7.5);doc.setTextColor(80,80,80);
-      doc.text(`${have.length}/${N}`,W-margin,y,{align:"right"});
-      y+=4.5;
-
-      if(have.length){
-        doc.setTextColor(30,120,60);
-        const rows=[];const line2=[];
-        have.forEach(n=>{line2.push(`${t.code} ${n}`);if(line2.length===12){rows.push([...line2]);line2.length=0;}});
-        if(line2.length)rows.push(line2);
-        rows.forEach(r=>{checkPage();doc.text("HAVE: "+r.join("  "),margin+4,y);y+=4;});
-      }
-      if(miss.length){
-        doc.setTextColor(180,40,40);
-        const rows=[];const line2=[];
-        miss.forEach(n=>{line2.push(`${t.code} ${n}`);if(line2.length===12){rows.push([...line2]);line2.length=0;}});
-        if(line2.length)rows.push(line2);
-        rows.forEach(r=>{checkPage();doc.text("MISSING: "+r.join("  "),margin+4,y);y+=4;});
-      }
-      if(rep.length){
-        doc.setTextColor(160,120,0);
-        const txt="2x: "+rep.map(n=>`${t.code} ${n}`).join("  ");
-        checkPage();doc.text(txt,margin+4,y);y+=4;
-      }
-      y+=1;
-    });
-    y+=2;line();
-  });
-
-  // footer
-  const pages=doc.getNumberOfPages();
-  for(let i=1;i<=pages;i++){
-    doc.setPage(i);
-    doc.setFontSize(7);doc.setTextColor(160,160,160);
-    doc.text(`Page ${i} of ${pages} · Generated on ${new Date().toLocaleDateString("en-US")}`,W/2,290,{align:"center"});
-  }
-
-  // iOS Safari fix - open in new tab instead of download
+function openPDF(doc){
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
   if(isIOS){
     const pdfData=doc.output('datauristring');
     const win=window.open();
-    win.document.write(`<html><head><title>Stickers WC2026 Report</title></head><body style="margin:0">
+    win.document.write(`<html><head><title>Stickers WC2026</title></head><body style="margin:0">
       <iframe src="${pdfData}" style="width:100%;height:100vh;border:none"></iframe></body></html>`);
     win.document.close();
   } else {
     doc.save("stickers-wc2026.pdf");
   }
+}
+
+function pdfHeader(doc,W,margin,title,subtitle){
+  doc.setFillColor(26,107,60);
+  doc.rect(0,0,W,32,"F");
+  doc.setFontSize(20);doc.setTextColor(255,214,0);
+  doc.text("Stickers World Cup 2026 - PANINI",margin,13);
+  doc.setFontSize(13);doc.setTextColor(255,255,255);
+  doc.text("by Eric & Dani",margin,23);
+  doc.setFontSize(11);doc.setTextColor(220,220,220);
+  doc.text(subtitle,W-margin,23,{align:"right"});
+  return 40;
+}
+
+function gerarPDF(collected){
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  const W=210,margin=14;
+  const have=ALL_KEYS.filter(k=>(collected[k]||0)>=1).length;
+  const dup=ALL_KEYS.filter(k=>(collected[k]||0)===2).length;
+  const miss=ALL_KEYS.length-have;
+  const pct=Math.round(have/ALL_KEYS.length*100);
+  let y=pdfHeader(doc,W,margin,"Full Report",`Have: ${have}  |  Missing: ${miss}  |  Doubles: ${dup}  |  Complete: ${pct}%`);
+
+  const line=()=>{doc.setDrawColor(200,200,200);doc.line(margin,y,W-margin,y);y+=5;};
+  const checkPage=()=>{if(y>272){doc.addPage();y=14;}};
+
+  // WFC
+  const wfcHave=wfcKeys.filter(k=>(collected[k]||0)>0).map(k=>k.replace("FWC_","FWC "));
+  const wfcMiss=wfcKeys.filter(k=>(collected[k]||0)===0).map(k=>k.replace("FWC_","FWC "));
+  doc.setFontSize(13);doc.setFont(undefined,"bold");doc.setTextColor(140,100,0);
+  doc.text("WFC Special Stickers",margin,y);y+=7;
+  doc.setFont(undefined,"normal");
+  if(wfcHave.length){
+    doc.setFontSize(10);doc.setTextColor(30,120,60);
+    const rows=[];for(let i=0;i<wfcHave.length;i+=8)rows.push(wfcHave.slice(i,i+8).join("   "));
+    rows.forEach(r=>{checkPage();doc.text("HAVE: "+r,margin+2,y);y+=5.5;});
+  }
+  if(wfcMiss.length){
+    doc.setFontSize(10);doc.setTextColor(180,40,40);
+    const rows=[];for(let i=0;i<wfcMiss.length;i+=8)rows.push(wfcMiss.slice(i,i+8).join("   "));
+    rows.forEach(r=>{checkPage();doc.text("MISSING: "+r,margin+2,y);y+=5.5;});
+  }
+  y+=2;line();
+
+  GROUPS.forEach(g=>{
+    checkPage();
+    const gH=g.teams.reduce((a,t)=>a+tn(t.code).filter(k=>(collected[k]||0)>0).length,0);
+    const gT=g.teams.length*N;
+    doc.setFontSize(13);doc.setFont(undefined,"bold");doc.setTextColor(50,50,50);
+    doc.text(`Group ${g.id}`,margin,y);
+    doc.setFont(undefined,"normal");
+    doc.setFontSize(10);doc.setTextColor(120,120,120);
+    doc.text(`${gH}/${gT}`,W-margin,y,{align:"right"});
+    y+=6;
+
+    [...g.teams].sort((a,b)=>a.name.localeCompare(b.name)).forEach(t=>{
+      checkPage();
+      const nums=Array.from({length:N},(_,i)=>i+1);
+      const haveN=nums.filter(n=>(collected[`${t.code}_${n}`]||0)>0);
+      const missN=nums.filter(n=>(collected[`${t.code}_${n}`]||0)===0);
+      const repN=nums.filter(n=>(collected[`${t.code}_${n}`]||0)===2);
+
+      doc.setFontSize(11);doc.setFont(undefined,"bold");doc.setTextColor(40,40,40);
+      doc.text(`${t.name} (${t.code})`,margin+2,y);
+      doc.setFont(undefined,"normal");
+      doc.setFontSize(10);doc.setTextColor(80,80,80);
+      doc.text(`${haveN.length}/${N}`,W-margin,y,{align:"right"});
+      y+=5.5;
+
+      if(haveN.length){
+        doc.setFontSize(10);doc.setTextColor(30,120,60);
+        const rows=[];const line2=[];
+        haveN.forEach(n=>{line2.push(`${t.code} ${n}`);if(line2.length===10){rows.push([...line2]);line2.length=0;}});
+        if(line2.length)rows.push(line2);
+        rows.forEach(r=>{checkPage();doc.text("HAVE: "+r.join("   "),margin+4,y);y+=5;});
+      }
+      if(missN.length){
+        doc.setFontSize(10);doc.setTextColor(180,40,40);
+        const rows=[];const line2=[];
+        missN.forEach(n=>{line2.push(`${t.code} ${n}`);if(line2.length===10){rows.push([...line2]);line2.length=0;}});
+        if(line2.length)rows.push(line2);
+        rows.forEach(r=>{checkPage();doc.text("MISSING: "+r.join("   "),margin+4,y);y+=5;});
+      }
+      if(repN.length){
+        doc.setFontSize(10);doc.setTextColor(160,120,0);
+        const txt="2x: "+repN.map(n=>`${t.code} ${n}`).join("   ");
+        checkPage();doc.text(txt,margin+4,y);y+=5;
+      }
+      y+=1.5;
+    });
+    y+=2;line();
+  });
+
+  const pages=doc.getNumberOfPages();
+  for(let i=1;i<=pages;i++){
+    doc.setPage(i);
+    doc.setFontSize(8);doc.setTextColor(160,160,160);
+    doc.text(`Page ${i} of ${pages} · Generated on ${new Date().toLocaleDateString("en-US")}`,W/2,291,{align:"center"});
+  }
+  openPDF(doc);
+}
+
+function gerarPDFMissing(collected){
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  const W=210,margin=14;
+  const miss=ALL_KEYS.filter(k=>(collected[k]||0)===0).length;
+  let y=pdfHeader(doc,W,margin,"Missing Stickers",`Total missing: ${miss} stickers`);
+
+  const line=()=>{doc.setDrawColor(200,200,200);doc.line(margin,y,W-margin,y);y+=5;};
+  const checkPage=()=>{if(y>272){doc.addPage();y=14;}};
+
+  // WFC missing
+  const wfcMiss=wfcKeys.filter(k=>(collected[k]||0)===0).map(k=>k.replace("FWC_","FWC "));
+  if(wfcMiss.length){
+    doc.setFontSize(13);doc.setFont(undefined,"bold");doc.setTextColor(140,100,0);
+    doc.text(`WFC Specials — ${wfcMiss.length} missing`,margin,y);y+=7;
+    doc.setFont(undefined,"normal");doc.setFontSize(11);doc.setTextColor(180,40,40);
+    const rows=[];for(let i=0;i<wfcMiss.length;i+=8)rows.push(wfcMiss.slice(i,i+8).join("   "));
+    rows.forEach(r=>{checkPage();doc.text(r,margin+4,y);y+=6;});
+    y+=2;line();
+  }
+
+  // Teams missing - alphabetical
+  const allTeams=GROUPS.flatMap(g=>g.teams.map(t=>({...t,color:g.color,gid:g.id})))
+    .sort((a,b)=>a.name.localeCompare(b.name));
+
+  allTeams.forEach(t=>{
+    const missN=Array.from({length:N},(_,i)=>i+1).filter(n=>(collected[`${t.code}_${n}`]||0)===0);
+    if(!missN.length)return;
+    checkPage();
+
+    doc.setFontSize(13);doc.setFont(undefined,"bold");doc.setTextColor(40,40,40);
+    doc.text(`${t.name} (${t.code})`,margin,y);
+    doc.setFont(undefined,"normal");
+    doc.setFontSize(10);doc.setTextColor(180,40,40);
+    doc.text(`${missN.length} missing`,W-margin,y,{align:"right"});
+    y+=6;
+
+    doc.setFontSize(11);doc.setTextColor(180,40,40);
+    const rows=[];const line2=[];
+    missN.forEach(n=>{line2.push(`${t.code} ${n}`);if(line2.length===10){rows.push([...line2]);line2.length=0;}});
+    if(line2.length)rows.push(line2);
+    rows.forEach(r=>{checkPage();doc.text(r.join("   "),margin+4,y);y+=6;});
+    y+=2;
+  });
+
+  const pages=doc.getNumberOfPages();
+  for(let i=1;i<=pages;i++){
+    doc.setPage(i);
+    doc.setFontSize(8);doc.setTextColor(160,160,160);
+    doc.text(`Page ${i} of ${pages} · Missing Stickers Report · ${new Date().toLocaleDateString("en-US")}`,W/2,291,{align:"center"});
+  }
+  openPDF(doc);
 }
 
 function App(){
@@ -437,7 +477,12 @@ function App(){
         style:{background:"linear-gradient(135deg,#1a6b3c,#0d4a28)",border:"none",
           color:"#fff",padding:"10px 22px",borderRadius:8,fontSize:13,fontWeight:700,
           cursor:"pointer",letterSpacing:0.5}},
-        ["📄 Generate PDF"]),
+        ["📄 Full Report"]),
+      e("button",{onClick:()=>gerarPDFMissing(collected),
+        style:{background:"linear-gradient(135deg,#8b1a1a,#5a0d0d)",border:"none",
+          color:"#fff",padding:"10px 22px",borderRadius:8,fontSize:13,fontWeight:700,
+          cursor:"pointer",letterSpacing:0.5}},
+        ["🔍 Missing Only"]),
       e("button",{onClick:()=>exportData(collected),
         style:{background:"linear-gradient(135deg,#1a3a6b,#0d2847)",border:"none",
           color:"#fff",padding:"10px 22px",borderRadius:8,fontSize:13,fontWeight:700,
